@@ -11,6 +11,11 @@ import { remote } from "@/lib/remote";
 import type { GroupSummary } from "@/lib/types";
 import { font, useTheme } from "@/theme";
 
+const HOW = [["Join with a link", "Send the group link on WhatsApp. Friends open it, type their name, and they're in. No app store, no password."],
+                ["Fair to the paisa", "Split equally, by exact amounts, by shares or by percentage. Every split adds up exactly — no stray ₹0.01."],
+                ["Pay in one tap", "Each suggested payment opens GPay, PhonePe or Paytm with the amount filled in. On a laptop, scan the QR."],
+                ["Nothing goes missing", "Everyone sees changes live. Edits and deletes are logged with who made them, and can be undone."]];
+
 const REPO = "https://github.com/manicpsycho01/split-settle";
 
 export default function Home() {
@@ -30,7 +35,8 @@ export default function Home() {
     return () => { on = false; };
   }, []));
 
-  const anyGroups = (groups?.length ?? 0) > 0 || hasDemo;
+  // Only real groups switch home to "Your groups" — someone who has just tried the demo still needs the pitch.
+  const anyGroups = (groups?.length ?? 0) > 0;
   const wide = width >= 900;
   const hero = width < 380 ? 40 : width < 900 ? 50 : 64;
 
@@ -50,6 +56,15 @@ export default function Home() {
             <Button title="Start a group" onPress={() => router.push("/new")} style={{ flexGrow: 1 }} />
             <Button kind="ghost" title="Import from Splitwise" onPress={() => router.push("/import")} style={{ flexGrow: 1 }} />
           </Row>
+          <View style={{ marginTop: 26, gap: 14 }}>
+            <Txt v="label">How it works</Txt>
+            {HOW.map(([h, b]) => (
+              <View key={h} style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ width: 10, height: 10, marginTop: 6, backgroundColor: t.yellow, borderWidth: 1.5, borderColor: t.ink }} />
+                <View style={{ flex: 1 }}><Txt v="h2">{h}</Txt><Txt v="small" style={{ marginTop: 3, color: t.ink2, fontSize: 15, lineHeight: 22 }}>{b}</Txt></View>
+              </View>
+            ))}
+          </View>
         </View>
       ) : (
         <View style={{ marginTop: wide ? 48 : 22, flexDirection: wide ? "row" : "column", gap: wide ? 64 : 0, alignItems: "flex-start" }}>
@@ -68,7 +83,7 @@ export default function Home() {
             <Appear delay={120} duration={500} style={{ marginTop: 22, gap: 10, maxWidth: 520 }}>
               <Button title="Start a group" onPress={() => router.push("/new")} testID="start" />
               <Row gap={10} style={{ flexWrap: "wrap" }}>
-                <Button kind="ghost" title="Try the demo" onPress={() => router.push("/demo")} style={{ flexGrow: 1, flexBasis: 160 }} />
+                <Button kind="ghost" title={hasDemo ? "Continue the demo" : "Try the demo"} onPress={() => router.push("/demo")} style={{ flexGrow: 1, flexBasis: 160 }} />
                 <Button kind="ghost" title="Import from Splitwise" onPress={() => router.push("/import")} style={{ flexGrow: 1, flexBasis: 160 }} />
               </Row>
             </Appear>
@@ -76,12 +91,7 @@ export default function Home() {
             {!wide && <Appear delay={220} duration={500} style={{ marginTop: 34 }}><SampleReceipt /></Appear>}
 
             <View style={{ marginTop: 34, gap: 18, maxWidth: 560 }}>
-              {[
-                ["Join with a link", "Send the group link on WhatsApp. Friends open it, type their name, and they're in. No app store, no password."],
-                ["Fair to the paisa", "Split equally, by exact amounts, by shares or by percentage. Every split adds up exactly — no stray ₹0.01."],
-                ["Pay in one tap", "Each suggested payment opens GPay, PhonePe or Paytm with the amount filled in. On a laptop, scan the QR."],
-                ["Nothing goes missing", "Everyone sees changes live. Edits and deletes are logged with who made them, and can be undone."],
-              ].map(([h, b]) => (
+              {HOW.map(([h, b]) => (
                 <View key={h} style={{ flexDirection: "row", gap: 12 }}>
                   <View style={{ width: 10, height: 10, marginTop: 6, backgroundColor: t.yellow, borderWidth: 1.5, borderColor: t.ink }} />
                   <View style={{ flex: 1 }}>

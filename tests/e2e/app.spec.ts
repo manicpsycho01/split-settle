@@ -267,3 +267,11 @@ test("desktop uses the width: summary beside the list, form beside the split", a
   const split = (await page.getByRole("tab", { name: "Equally" }).boundingBox())!;
   if (!isMobile) expect(split.x).toBeGreaterThan(amount.x + 300);
 });
+
+test("after trying the demo, the home page still explains the app", async ({ page }) => {
+  await openDemo(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Split the bill/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue the demo" })).toBeVisible();
+  await expect(page.getByText("Fair to the paisa")).toBeVisible();
+});
