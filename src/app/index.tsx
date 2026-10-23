@@ -58,7 +58,7 @@ export default function Home() {
               <Txt v="label">For trips, flats & dinners · free · no sign-up</Txt>
               <Txt v="display" accessibilityRole="header" style={{ marginTop: 12, fontSize: hero, lineHeight: hero * 1.0 }}>
                 Split the bill.{"\n"}Settle in one{" "}
-                <Txt v="display" style={{ fontSize: hero, lineHeight: hero * 1.0, backgroundColor: t.yellow, color: t.onYellow }}> UPI tap. </Txt>
+                <Txt v="display" style={{ fontSize: hero, lineHeight: hero * 1.0, backgroundColor: t.yellow, color: t.onYellow }}>UPI tap.</Txt>
               </Txt>
               <Txt style={{ marginTop: 14, color: t.ink2, fontSize: 17, lineHeight: 25, maxWidth: 520 }}>
                 Add what everyone paid. Split & Settle works out who owes whom — to the paisa — and turns it into UPI payments your friends can make in a tap.
