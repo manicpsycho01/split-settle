@@ -43,3 +43,5 @@ example
 /android
 test-results/
 playwright-report/
+.vercel
+.env*

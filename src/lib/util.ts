@@ -3,7 +3,7 @@ import { Linking, Platform } from "react-native";
 import { rupees } from "./money";
 import type { ActivityRow, GroupData } from "./types";
 
-export const SITE = process.env.EXPO_PUBLIC_SITE_URL ?? "https://split-settle.vercel.app";
+export const SITE = process.env.EXPO_PUBLIC_SITE_URL ?? "https://split-settle-iota.vercel.app";
 export const origin = () => (Platform.OS === "web" && typeof window !== "undefined" ? window.location.origin : SITE);
 export const inviteUrl = (token: string) => `${origin()}/join?t=${token}`;
 

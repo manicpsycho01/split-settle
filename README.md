@@ -2,7 +2,7 @@
 
 **Split the bill. Settle in one UPI tap.** A bill-splitting app for friends in India. Add what everyone paid, see who owes whom (to the paisa), and settle with UPI payment links or a QR code. Friends join with a WhatsApp link. There's no sign-up and nothing to install.
 
-**Live:** https://split-settle.vercel.app — install it from the browser menu ("Add to Home Screen").
+**Live:** https://split-settle-iota.vercel.app — install it from the browser menu ("Add to Home Screen").
 
 Built with Expo (React Native), so the same code can ship to the App Store and Play Store later.
 
