@@ -246,3 +246,12 @@ test("with 'reduce motion' on, everything is visible without animation", async (
   await expect(page.getByRole("button", { name: /Parasailing/ })).toBeVisible({ timeout: 20_000 });
   await ctx.close();
 });
+
+test("saving an expense opened directly (after a refresh) returns to the group", async ({ page }) => {
+  await openDemo(page);
+  await page.goto("/expense?group=demo-goa");
+  await page.getByLabel("Amount in rupees").fill("500");
+  await page.getByLabel("What was it for?").fill("Chai and samosa");
+  await page.getByTestId("save-expense").click();
+  await expect(page.getByRole("button", { name: /Chai and samosa, ₹500/ })).toBeVisible();
+});

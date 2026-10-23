@@ -61,6 +61,9 @@ export default function Expense() {
   const canEdit = !existing || existing.createdBy === data.me || data.isAdmin;
   const name = (m: string) => data.members.find((x) => x.id === m)?.name ?? "";
 
+  // Opened directly (refresh, bookmark), there's no screen to go back to — go to the group instead.
+  const done = () => (router.canGoBack() ? router.back() : router.replace(`/group?id=${data.id}`));
+
   const save = async () => {
     setTried(true);
     if (!paise || !desc.trim() || !split?.ok) return;
@@ -69,12 +72,12 @@ export default function Expense() {
       const splitInput = kind === "equal" ? included : Object.fromEntries(Object.entries(vals).filter(([, v]) => Number(v) > 0).map(([k, v]) => [k, kind === "exact" ? toPaise(v) ?? 0 : Number(v)]));
       await store.saveExpense(data.id, { description: desc.trim(), amount: paise, paidBy, splitKind: kind, splitInput, shares: split.shares, date, category: category(desc) }, existing?.id);
       toast(existing ? "Expense updated." : "Expense added.");
-      router.back();
+      done();
     } catch (e) { toast((e as Error).message); setBusy(false); }
   };
   const remove = async () => {
     if (!existing) return;
-    try { await store.setExpenseDeleted(data.id, existing.id, true); toast("Deleted. You can restore it from the expenses list."); router.back(); }
+    try { await store.setExpenseDeleted(data.id, existing.id, true); toast("Deleted. You can restore it from the expenses list."); done(); }
     catch (e) { toast((e as Error).message); }
   };
 
