@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { TopBar } from "@/components/Brand";
+import { Columns, useWide } from "@/components/Columns";
 import { Button, Field, Row, Screen, Tap, toast, Txt } from "@/components/ui";
 import { remote } from "@/lib/remote";
 import { rememberName, rememberedName } from "@/lib/util";
@@ -16,6 +17,7 @@ export default function NewGroup() {
   const [me, setMe] = useState("");
   const [others, setOthers] = useState<string[]>(["", ""]);
   const [busy, setBusy] = useState(false);
+  const wide = useWide(900);
   useEffect(() => { const n = rememberedName(); if (n) setMe((x) => x || n); }, []);
   const [tried, setTried] = useState(false);
 
@@ -35,10 +37,15 @@ export default function NewGroup() {
     } catch (e) { toast((e as Error).message); setBusy(false); }
   };
 
+  const createBtn = <Button title="Create group" onPress={create} busy={busy} testID="create" />;
+
   return (
-    <Screen footer={<Button title="Create group" onPress={create} busy={busy} testID="create" />}>
+    <Screen width={wide ? 1000 : undefined} footer={wide ? undefined : createBtn}>
       <TopBar title="New group" />
-      <View style={{ gap: 20, marginTop: 8 }}>
+      <View style={{ marginTop: 8 }}>
+      <Columns wide={wide} leftWidth={420} gap={48}
+        left={<View style={{ gap: 20 }}>
+
         <Field label="Group name" placeholder="Goa trip, Flat 4B, Friday dinners…" value={name} onChangeText={setName} maxLength={60} error={errName} autoFocus />
         <View style={{ gap: 6 }}>
           <Txt v="label">Icon</Txt>
@@ -52,6 +59,8 @@ export default function NewGroup() {
           </Row>
         </View>
         <Field label="Your name" placeholder="What friends call you" value={me} onChangeText={setMe} maxLength={40} error={errMe} />
+        </View>}
+        right={<View style={{ gap: 20 }}>
         <View style={{ gap: 8 }}>
           <Txt v="label">Who else? (you can add more later)</Txt>
           {others.map((o, i) => (
@@ -71,6 +80,8 @@ export default function NewGroup() {
           {tried && dup && <Txt v="small" color={t.red}>Two people have the same name — add an initial so you can tell them apart.</Txt>}
           <Txt v="small">Each friend gets their own invite link, so nobody can join as someone else.</Txt>
         </View>
+                {wide && createBtn}
+        </View>} />
       </View>
     </Screen>
   );

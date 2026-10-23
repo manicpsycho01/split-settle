@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { TopBar } from "@/components/Brand";
+import { Columns, useWide } from "@/components/Columns";
 import { Avatar, Button, Field, Loading, Receipt, Row, Rule, Screen, Tabs, toast, Txt } from "@/components/ui";
 import { computeSplit, rupees, toPaise, type SplitKind } from "@/lib/money";
 import { useGroup } from "@/lib/useGroup";
@@ -24,6 +25,7 @@ export default function Expense() {
   const [busy, setBusy] = useState(false);
   const [tried, setTried] = useState(false);
   const [ready, setReady] = useState(false);
+  const wide = useWide(900);
 
   useEffect(() => {
     if (!data || ready) return;
@@ -84,13 +86,23 @@ export default function Expense() {
   const setVal = (k: string, v: string) => setVals((x) => ({ ...x, [k]: v }));
   const exactLeft = kind === "exact" && paise ? paise - Object.values(vals).reduce((s, v) => s + (toPaise(v) ?? 0), 0) : 0;
 
+  const saveBtn = <Button title={existing ? "Save changes" : "Add expense"} onPress={save} busy={busy} testID="save-expense" />;
+  const deleteBox = existing ? (
+    <View style={{ gap: 8 }}>
+      <Rule />
+      <Txt v="small">Added by {name(existing.createdBy)}{existing.source === "splitwise" ? " (imported from Splitwise)" : ""}.</Txt>
+      <Button kind="danger" title="Delete expense" onPress={remove} />
+    </View>
+  ) : null;
+
   return (
-    <Screen footer={canEdit ? <Button title={existing ? "Save changes" : "Add expense"} onPress={save} busy={busy} testID="save-expense" /> : undefined}>
+    <Screen width={wide ? 1080 : undefined} footer={canEdit && !wide ? saveBtn : undefined}>
       <TopBar title={existing ? "Edit expense" : "Add expense"} />
       {!canEdit && <Receipt><Txt v="small">Only the person who added this expense or the group admin can change it.</Txt></Receipt>}
 
-      <View pointerEvents={canEdit ? "auto" : "none"} style={{ gap: 18, opacity: canEdit ? 1 : 0.6 }}>
-        <View style={{ alignItems: "center", paddingVertical: 8 }}>
+      <View pointerEvents={canEdit ? "auto" : "none"} style={{ opacity: canEdit ? 1 : 0.6, marginTop: 4 }}>
+       <Columns wide={wide} leftWidth={440} gap={48} left={<View style={{ gap: 18 }}>
+        <View style={{ alignItems: wide ? "flex-start" : "center", paddingVertical: 8 }}>
           <Txt v="label">Amount</Txt>
           <Row gap={2} style={{ marginTop: 4 }}>
             <Txt style={{ fontFamily: font.black, fontSize: 44, color: t.muted }}>₹</Txt>
@@ -129,7 +141,8 @@ export default function Expense() {
               error={!/^\d{4}-\d{2}-\d{2}$/.test(date) ? "Use YYYY-MM-DD" : null} hint={dayLabel(date)} />
           </Row>
         </View>
-
+        {existing && canEdit && wide && deleteBox}
+       </View>} right={
         <View style={{ gap: 10 }}>
           <Txt v="label">Split</Txt>
           <Tabs<SplitKind> value={kind} onChange={(k) => { setKind(k); if (k !== "equal") setVals({}); }} items={[{ id: "equal", label: "Equally" }, { id: "exact", label: "Amounts" }, { id: "shares", label: "Shares" }, { id: "percent", label: "%" }]} />
@@ -173,15 +186,9 @@ export default function Expense() {
                 : kind === "exact" && exactLeft > 0 ? `${rupees(exactLeft)} left to assign` : split?.error}
             </Txt>
           </Receipt>
-        </View>
-
-        {existing && canEdit && (
-          <View style={{ gap: 8 }}>
-            <Rule />
-            <Txt v="small">Added by {name(existing.createdBy)}{existing.source === "splitwise" ? " (imported from Splitwise)" : ""}.</Txt>
-            <Button kind="danger" title="Delete expense" onPress={remove} />
-          </View>
-        )}
+          {canEdit && wide && saveBtn}
+          {existing && canEdit && !wide && deleteBox}
+        </View>} />
       </View>
     </Screen>
   );

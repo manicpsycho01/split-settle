@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, Pressable, View } from "react-native";
 import { TopBar } from "@/components/Brand";
+import { Columns, useWide } from "@/components/Columns";
 import { Avatar, Button, Field, Leader, Receipt, Row, Rule, Screen, toast, Txt } from "@/components/ui";
 import { rupees } from "@/lib/money";
 import { importSplitwise } from "@/lib/remote";
@@ -21,6 +22,7 @@ export default function Import() {
   const [me, setMe] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const wide = useWide(900);
 
   const pick = async () => {
     setErr(null);
@@ -43,9 +45,13 @@ export default function Import() {
     } catch (e) { toast((e as Error).message); setBusy(false); }
   };
 
+  const importBtn = sw ? <Button title={`Import ${sw.rows.length} entries`} onPress={go} busy={busy} disabled={me === null || !name.trim() || sw.matchesTotals === false} testID="do-import" /> : null;
+
   return (
-    <Screen footer={sw ? <Button title={`Import ${sw.rows.length} entries`} onPress={go} busy={busy} disabled={me === null || !name.trim() || sw.matchesTotals === false} testID="do-import" /> : undefined}>
+    <Screen width={wide ? 1080 : undefined} footer={sw && !wide ? importBtn : undefined}>
       <TopBar title="Import from Splitwise" />
+      <Columns wide={wide} leftWidth={420} gap={48}
+        left={<View>
       <Txt color={t.ink2}>Bring a Splitwise group across, with everyone's balance exactly as it is in Splitwise. Your Splitwise login is never needed.</Txt>
 
       <Receipt style={{ marginTop: 16 }}>
@@ -62,8 +68,10 @@ export default function Import() {
       <Button kind={sw ? "ghost" : "primary"} title={sw ? `Change file (${fileName})` : "Choose Splitwise export (.csv)"} onPress={pick} style={{ marginTop: 14 }} testID="pick" />
       {err && <Txt v="small" color={t.red} style={{ marginTop: 10 }}>{err}</Txt>}
 
-      {sw && (
-        <View style={{ marginTop: 22, gap: 16 }}>
+        </View>}
+        right={<View>
+      {sw ? (
+        <View style={{ marginTop: wide ? 0 : 22, gap: 16 }}>
           <Receipt torn>
             <Txt v="label">Preview</Txt>
             <Rule dashed style={{ marginVertical: 8 }} />
@@ -92,8 +100,15 @@ export default function Import() {
           </View>
           <Field label="Group name" value={name} onChangeText={setName} maxLength={60} />
           <Txt v="small">You'll be the admin. Everyone else gets a personal invite link to claim their name.</Txt>
+          {wide && importBtn}
         </View>
-      )}
+      ) : wide ? (
+        <View style={{ borderWidth: 1.5, borderStyle: "dashed", borderColor: t.line, borderRadius: 4, padding: 28, alignItems: "center" }}>
+          <Txt v="h2" style={{ textAlign: "center" }}>The preview appears here</Txt>
+          <Txt v="small" style={{ textAlign: "center", marginTop: 4 }}>Everyone's balance, checked against Splitwise's own totals before anything is saved.</Txt>
+        </View>
+      ) : null}
+        </View>} />
     </Screen>
   );
 }

@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { TopBar } from "@/components/Brand";
+import { Columns, useWide } from "@/components/Columns";
 import { Avatar, Button, Field, Loading, Receipt, Row, Rule, Screen, toast, Txt } from "@/components/ui";
 import { resetDemo } from "@/lib/demo";
 import { isVpa } from "@/lib/money";
@@ -18,6 +19,7 @@ export default function Settings() {
   const [gName, setGName] = useState("");
   const [newPerson, setNewPerson] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const wide = useWide(900);
 
   useEffect(() => { if (me) { setMyName(me.name); setUpi(me.upi ?? ""); } if (data) setGName(data.name); }, [me?.id, data?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!data || !store) return <Loading />;
@@ -30,8 +32,10 @@ export default function Settings() {
   const upiErr = upi.trim() && !isVpa(upi) ? "That doesn't look like a UPI ID (like name@okaxis or 98xxxxxx10@ybl)" : null;
 
   return (
-    <Screen>
+    <Screen width={wide ? 1080 : undefined}>
       <TopBar title="Group settings" />
+      <Columns wide={wide} leftWidth={400} gap={48}
+        left={<View>
       {me && (
         <View style={{ gap: 12 }}>
           <Txt v="h2" accessibilityRole="header">You</Txt>
@@ -43,7 +47,10 @@ export default function Settings() {
         </View>
       )}
 
-      <Rule style={{ marginVertical: 22 }} />
+      <Txt v="small" style={{ marginTop: 22, color: t.muted }}>Everyone in a group can add expenses and record payments. Only the person who added an expense, or the admin, can edit or delete it — and every change shows up in Activity.</Txt>
+        </View>}
+        right={<View>
+      {!wide && <Rule style={{ marginVertical: 22 }} />}
       <Txt v="h2" accessibilityRole="header">People</Txt>
       <Receipt style={{ marginTop: 10 }}>
         {data.members.map((m) => (
@@ -80,7 +87,7 @@ export default function Settings() {
           <Button kind="danger" title="Reset the demo" onPress={async () => { await resetDemo(); toast("Demo reset."); router.replace("/"); }} />
         </>
       )}
-      <Txt v="small" style={{ marginTop: 22, color: t.muted }}>Everyone in a group can add expenses and record payments. Only the person who added an expense, or the admin, can edit or delete it — and every change shows up in Activity.</Txt>
+        </View>} />
     </Screen>
   );
 }

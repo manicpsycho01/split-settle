@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
 import { Appear } from "@/components/Appear";
 import { IconButton, TopBar } from "@/components/Brand";
+import { Columns, useWide, WIDE_MAX } from "@/components/Columns";
 import { Qr } from "@/components/Qr";
 import { Avatar, Button, Empty, Field, Loading, Receipt, Row, Rule, Screen, Sheet, Tabs, toast, Txt } from "@/components/ui";
 import { rupees, toPaise, upiLink, type Transfer } from "@/lib/money";
@@ -20,6 +21,7 @@ export default function Group() {
   const [tab, setTab] = useState<Tab>("expenses");
   const [pay, setPay] = useState<Transfer | null>(null);
   const [showDeleted, setShowDeleted] = useState(false);
+  const wide = useWide();
 
   useEffect(() => { if (created) toast("Group created. Send everyone their invite link."); }, [created]);
 
@@ -29,22 +31,14 @@ export default function Group() {
   const me = g.members.find((m) => m.id === g.me);
   const notJoined = g.members.filter((m) => !m.joined).length;
 
-  return (
-    <Screen footer={<Button title="+ Add expense" onPress={() => router.push(`/expense?group=${g.id}`)} testID="add-expense" />}>
-      <TopBar
-        onBack={() => router.replace("/")}
-        title={<Row gap={8} style={{ flexShrink: 1 }}><Txt style={{ fontSize: 22 }}>{g.emoji}</Txt><Txt v="h2" numberOfLines={1} style={{ flexShrink: 1 }} accessibilityRole="header">{g.name}</Txt></Row>}
-        right={<>
-          <IconButton label="Invite people" glyph="Invite" onPress={() => router.push(`/invite?group=${g.id}`)} />
-          <IconButton label="Group settings" glyph="•••" onPress={() => router.push(`/settings?group=${g.id}`)} />
-        </>}
-      />
+  const addBtn = <Button title="+ Add expense" onPress={() => router.push(`/expense?group=${g.id}`)} testID="add-expense" />;
+  const summary = (
+    <>
       {g.demo && (
-        <View style={{ backgroundColor: t.yellow, borderRadius: 4, padding: 10, marginBottom: 10 }}>
+        <View style={{ backgroundColor: t.yellow, borderRadius: 4, padding: 10 }}>
           <Txt style={{ color: t.onYellow, fontFamily: font.medium, fontSize: 14.5 }}>Demo group — saved only on this device. Add, edit and settle freely.</Txt>
         </View>
       )}
-
       <Receipt torn testID="summary">
         <Txt v="label">{d.myBalance > 0 ? "You get back" : d.myBalance < 0 ? "You owe" : "Your balance"}</Txt>
         <Txt v="display" color={d.myBalance > 0 ? t.green : d.myBalance < 0 ? t.red : t.ink} style={{ marginTop: 6, fontVariant: ["tabular-nums"] }}>
@@ -61,14 +55,29 @@ export default function Group() {
           </Pressable>
         )}
       </Receipt>
-
-      <View style={{ marginTop: 16 }}>
-        <Tabs<Tab> value={tab} onChange={setTab} items={[
-          { id: "expenses", label: "Expenses" }, { id: "balances", label: "Balances" }, { id: "settle", label: "Settle up" }, { id: "activity", label: "Activity" },
-        ]} />
-      </View>
-
-      <View style={{ marginTop: 14 }}>
+      {wide && addBtn}
+      {wide && (
+        <Receipt>
+          <Txt v="label" style={{ marginBottom: 4 }}>People · {g.members.length}</Txt>
+          {g.members.map((m) => (
+            <Row key={m.id} gap={10} style={{ paddingVertical: 6 }}>
+              <Avatar name={m.name} size={28} dim={!m.joined} />
+              <Txt style={{ flex: 1, fontFamily: font.medium }} numberOfLines={1}>{m.isMe ? `${m.name} (you)` : m.name}</Txt>
+              <Txt v="small" style={{ fontFamily: font.mono, fontSize: 13, color: (d.bal[m.id] ?? 0) > 0 ? t.green : (d.bal[m.id] ?? 0) < 0 ? t.red : t.muted }}>
+                {(d.bal[m.id] ?? 0) === 0 ? "settled" : rupees(d.bal[m.id] ?? 0, { sign: true })}
+              </Txt>
+            </Row>
+          ))}
+        </Receipt>
+      )}
+    </>
+  );
+  const body = (
+    <>
+      <Tabs<Tab> value={tab} onChange={setTab} items={[
+        { id: "expenses", label: "Expenses" }, { id: "balances", label: "Balances" }, { id: "settle", label: "Settle up" }, { id: "activity", label: "Activity" },
+      ]} />
+      <View>
         {tab === "expenses" && <Expenses g={g} rows={d.live} name={d.name} />}
         {tab === "expenses" && g.expenses.some((e) => e.deletedAt) && (
           <View style={{ marginTop: 18 }}>
@@ -86,6 +95,22 @@ export default function Group() {
         {tab === "balances" && <Balances g={g} bal={d.bal} />}
         {tab === "settle" && <Settle g={g} suggestions={d.suggestions} name={d.name} onPay={setPay} store={store} />}
         {tab === "activity" && <Activity g={g} />}
+      </View>
+    </>
+  );
+
+  return (
+    <Screen width={wide ? WIDE_MAX : undefined} footer={wide ? undefined : addBtn}>
+      <TopBar
+        onBack={() => router.replace("/")}
+        title={<Row gap={8} style={{ flexShrink: 1 }}><Txt style={{ fontSize: 22 }}>{g.emoji}</Txt><Txt v="h2" numberOfLines={1} style={{ flexShrink: 1 }} accessibilityRole="header">{g.name}</Txt></Row>}
+        right={<>
+          <IconButton label="Invite people" glyph="Invite" onPress={() => router.push(`/invite?group=${g.id}`)} />
+          <IconButton label="Group settings" glyph="•••" onPress={() => router.push(`/settings?group=${g.id}`)} />
+        </>}
+      />
+      <View style={{ marginTop: 4 }}>
+        <Columns wide={wide} leftWidth={400} left={summary} right={body} />
       </View>
 
       <PaySheet g={g} transfer={pay} onClose={() => setPay(null)} me={me} onRecord={async (amount, method) => {

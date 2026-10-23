@@ -2,6 +2,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { TopBar } from "@/components/Brand";
+import { Columns, useWide } from "@/components/Columns";
 import { Qr } from "@/components/Qr";
 import { Avatar, Button, Empty, Loading, Receipt, Row, Rule, Screen, toast, Txt } from "@/components/ui";
 import type { InviteLinks } from "@/lib/types";
@@ -13,6 +14,7 @@ export default function Invite() {
   const { group } = useLocalSearchParams<{ group: string }>();
   const { data, store } = useGroup(group);
   const [links, setLinks] = useState<InviteLinks | null>(null);
+  const wide = useWide(900);
   const load = useCallback(async () => { if (store && group) try { setLinks(await store.inviteLinks(group)); } catch (e) { toast((e as Error).message); } }, [store, group]);
   useEffect(() => { void load(); }, [load, data?.members.length]);
   if (!data || !links) return <Loading />;
@@ -22,12 +24,14 @@ export default function Invite() {
   const demoNote = data.demo ? "This is the demo — links here are examples and won't open a real group." : null;
 
   return (
-    <Screen>
+    <Screen width={wide ? 1080 : undefined}>
       <TopBar title="Invite people" />
       {demoNote && <Receipt style={{ marginBottom: 12 }}><Txt v="small">{demoNote}</Txt></Receipt>}
 
+      <Columns wide={wide} leftWidth={460} gap={48}
+        left={<View style={{ gap: 10 }}>
       {links.people.length > 0 && (
-        <View style={{ gap: 10, marginBottom: 22 }}>
+        <View style={{ gap: 10 }}>
           <Txt v="h2" accessibilityRole="header">Personal links</Txt>
           <Txt v="small">Each link joins as that person, and works once — so nobody can join as someone else.</Txt>
           {links.people.map((p) => (
@@ -45,6 +49,9 @@ export default function Invite() {
         </View>
       )}
 
+      {!links.people.length && <Txt v="small">Everyone you added has joined. Use the group link for anyone new.</Txt>}
+        </View>}
+        right={<View>
       <Txt v="h2" accessibilityRole="header">Group link</Txt>
       <Txt v="small" style={{ marginTop: 4 }}>For anyone not listed above — they join as a new person.</Txt>
       <Receipt torn style={{ marginTop: 10 }}>
@@ -65,6 +72,7 @@ export default function Invite() {
           <Txt v="small">Use this if the link was shared somewhere it shouldn't be. People already in the group stay in.</Txt>
         </View>
       )}
+        </View>} />
       {!links.people.length && !links.group && <Empty title="No links" />}
     </Screen>
   );

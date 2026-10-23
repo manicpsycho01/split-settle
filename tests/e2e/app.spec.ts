@@ -255,3 +255,15 @@ test("saving an expense opened directly (after a refresh) returns to the group",
   await page.getByTestId("save-expense").click();
   await expect(page.getByRole("button", { name: /Chai and samosa, ₹500/ })).toBeVisible();
 });
+
+test("desktop uses the width: summary beside the list, form beside the split", async ({ page, isMobile }) => {
+  await openDemo(page);
+  const summary = (await page.getByTestId("summary").boundingBox())!;
+  const tabs = (await page.getByRole("tablist").first().boundingBox())!;
+  if (isMobile) expect(tabs.y).toBeGreaterThan(summary.y + summary.height - 1);
+  else { expect(tabs.x).toBeGreaterThan(summary.x + summary.width); expect(Math.abs(tabs.y - summary.y)).toBeLessThan(120); }
+  await page.goto("/expense?group=demo-goa");
+  const amount = (await page.getByLabel("Amount in rupees").boundingBox())!;
+  const split = (await page.getByRole("tab", { name: "Equally" }).boundingBox())!;
+  if (!isMobile) expect(split.x).toBeGreaterThan(amount.x + 300);
+});
